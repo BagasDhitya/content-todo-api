@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import pool from "../db.ts";
+import pool from "../db";
 
 export async function getTodos(req: Request, res: Response) {
   const result = await pool.query(
