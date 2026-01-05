@@ -22,7 +22,7 @@ export async function updateTodo(req: Request, res: Response) {
   const { id } = req.params;
   const { completed } = req.body;
 
-  const todo = await updateTodoCompleted(id, completed);
+  const todo = await updateTodoCompleted(Number(id), completed);
 
   if (!todo) {
     return res.status(404).json({ message: "Todo not found" });
@@ -34,6 +34,6 @@ export async function updateTodo(req: Request, res: Response) {
 export async function deleteTodo(req: Request, res: Response) {
   const { id } = req.params;
 
-  await deleteTodoById(id);
+  await deleteTodoById(Number(id));
   res.status(204).send();
 }

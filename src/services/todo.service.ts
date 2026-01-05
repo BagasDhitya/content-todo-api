@@ -1,39 +1,42 @@
-import pool from "../db";
+import prisma from "../db";
 
 export interface Todo {
   id: number;
   title: string;
   completed: boolean;
-  created_at: Date;
+  createdAt: Date;
 }
 
 export async function findAllTodos(): Promise<Todo[]> {
-  const result = await pool.query(
-    "SELECT * FROM todos ORDER BY created_at DESC"
-  );
-  return result.rows;
+  return prisma.todo.findMany({
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
 }
 
 export async function createTodo(title: string): Promise<Todo> {
-  const result = await pool.query(
-    "INSERT INTO todos (title) VALUES ($1) RETURNING *",
-    [title]
-  );
-  return result.rows[0];
+  return prisma.todo.create({
+    data: {
+      title,
+    },
+  });
 }
 
 export async function updateTodoCompleted(
-  id: string,
+  id: number,
   completed: boolean
 ): Promise<Todo | null> {
-  const result = await pool.query(
-    "UPDATE todos SET completed=$1 WHERE id=$2 RETURNING *",
-    [completed, id]
-  );
-
-  return result.rows[0] ?? null;
+  return prisma.todo
+    .update({
+      where: { id },
+      data: { completed },
+    })
+    .catch(() => null);
 }
 
-export async function deleteTodoById(id: string): Promise<void> {
-  await pool.query("DELETE FROM todos WHERE id=$1", [id]);
+export async function deleteTodoById(id: number): Promise<void> {
+  await prisma.todo.delete({
+    where: { id },
+  });
 }
