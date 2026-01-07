@@ -5,12 +5,14 @@ import {
   updateTodo,
   deleteTodo,
 } from "../controllers/todo.controller";
+import AuthMiddleware from "../middlewares/auth.middleware";
 
 const router = Router();
+const { verifyToken } = AuthMiddleware();
 
-router.get("/", getTodos);
-router.post("/", createTodo);
-router.put("/:id", updateTodo);
-router.delete("/:id", deleteTodo);
+router.get("/", verifyToken, getTodos);
+router.post("/", verifyToken, createTodo);
+router.put("/:id", verifyToken, updateTodo);
+router.delete("/:id", verifyToken, deleteTodo);
 
 export default router;
