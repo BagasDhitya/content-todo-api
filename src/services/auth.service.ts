@@ -4,6 +4,7 @@ import jwt from "jsonwebtoken";
 import { OAuth2Client } from "google-auth-library";
 
 import dotenv from "dotenv";
+import { generateAccessToken, generateRefreshToken } from "../utils/token";
 
 dotenv.config();
 
@@ -56,25 +57,30 @@ export async function registerUser(email: string, password: string) {
 /**
  * Login with email & password
  */
-export async function loginUser(
-  email: string,
-  password: string
-): Promise<AuthToken> {
-  const user = await prisma.user.findUnique({
-    where: { email },
+export async function loginUser(email: string, password: string) {
+  const user = await prisma.user.findUnique({ where: { email } });
+  if (!user) throw new Error("Invalid credentials");
+
+  const match = await bcrypt.compare(password, user.password);
+  if (!match) throw new Error("Invalid credentials");
+
+  const accessToken = generateAccessToken({
+    userId: user.id,
+    email: user.email,
+    role: user.role,
   });
 
-  if (!user) {
-    throw new Error("Invalid email or password");
-  }
+  const { token: refreshToken, tokenHash } = generateRefreshToken(user.id);
 
-  const isMatch = await bcrypt.compare(password, user.password);
+  await prisma.refreshToken.create({
+    data: {
+      tokenHash,
+      userId: user.id,
+      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+    },
+  });
 
-  if (!isMatch) {
-    throw new Error("Invalid email or password");
-  }
-
-  return generateToken(user.id, user.email, user.role);
+  return { accessToken, refreshToken };
 }
 
 /**

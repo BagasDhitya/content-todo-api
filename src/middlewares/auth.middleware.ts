@@ -4,7 +4,7 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-const JWT_SECRET = process.env.JWT_SECRET || "supersecret";
+const ACCESS_TOKEN_SECRET = process.env.ACCESS_TOKEN_SECRET!;
 
 interface JwtPayload {
   userId: number;
@@ -16,7 +16,7 @@ export default function AuthMiddleware() {
   function verifyToken(req: Request, res: Response, next: NextFunction) {
     const authHeader = req.headers.authorization;
 
-    if (!authHeader) {
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
       return res.status(401).json({
         message: "Token not provided",
       });
@@ -25,7 +25,7 @@ export default function AuthMiddleware() {
     const token = authHeader.split(" ")[1];
 
     try {
-      const decoded = jwt.verify(token, JWT_SECRET) as JwtPayload;
+      const decoded = jwt.verify(token, ACCESS_TOKEN_SECRET) as JwtPayload;
 
       req.user = {
         id: decoded.userId,
@@ -34,9 +34,9 @@ export default function AuthMiddleware() {
       };
 
       next();
-    } catch (error: any) {
-      console.log("err : ", error);
-      res.status(401).json({
+    } catch (error) {
+      console.log("JWT ERROR:", error);
+      return res.status(401).json({
         message: "Invalid or expired token",
       });
     }
