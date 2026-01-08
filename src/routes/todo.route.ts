@@ -1,18 +1,24 @@
 import { Router } from "express";
+import AuthMiddleware from "../middlewares/auth.middleware";
+import { requireRole } from "../middlewares/role.middleware";
 import {
   getTodos,
   createTodo,
   updateTodo,
   deleteTodo,
 } from "../controllers/todo.controller";
-import AuthMiddleware from "../middlewares/auth.middleware";
 
 const router = Router();
 const { verifyToken } = AuthMiddleware();
 
-router.get("/", verifyToken, getTodos);
-router.post("/", verifyToken, createTodo);
-router.put("/:id", verifyToken, updateTodo);
-router.delete("/:id", verifyToken, deleteTodo);
+// GUEST & VIP boleh GET
+router.get("/", verifyToken, requireRole(["GUEST", "VIP"]), getTodos);
+
+// HANYA VIP
+router.post("/", verifyToken, requireRole(["VIP"]), createTodo);
+
+router.put("/:id", verifyToken, requireRole(["VIP"]), updateTodo);
+
+router.delete("/:id", verifyToken, requireRole(["VIP"]), deleteTodo);
 
 export default router;

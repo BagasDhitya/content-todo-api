@@ -3,6 +3,10 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { OAuth2Client } from "google-auth-library";
 
+import dotenv from "dotenv";
+
+dotenv.config();
+
 const JWT_SECRET = process.env.JWT_SECRET || "supersecret";
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || "";
 
@@ -15,8 +19,14 @@ export interface AuthToken {
 /**
  * Generate JWT token
  */
-function generateToken(userId: number, email: string): AuthToken {
-  const token = jwt.sign({ userId, email }, JWT_SECRET, { expiresIn: "1h" });
+function generateToken(
+  userId: number,
+  email: string,
+  role: "GUEST" | "VIP"
+): AuthToken {
+  const token = jwt.sign({ userId, email, role }, JWT_SECRET, {
+    expiresIn: "1h",
+  });
 
   return { token };
 }
@@ -64,7 +74,7 @@ export async function loginUser(
     throw new Error("Invalid email or password");
   }
 
-  return generateToken(user.id, user.email);
+  return generateToken(user.id, user.email, user.role);
 }
 
 /**
@@ -96,5 +106,5 @@ export async function loginWithGoogle(idToken: string): Promise<AuthToken> {
     });
   }
 
-  return generateToken(user.id, user.email);
+  return generateToken(user.id, user.email, user.role);
 }
