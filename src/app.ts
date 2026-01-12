@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import todoRoutes from "./routes/todo.route";
 import authRoutes from "./routes/auth.route";
+import userRoutes from "./routes/user.route";
 
 const app = express();
 const PORT = 3000;
@@ -17,6 +18,7 @@ app.use(
 app.use(express.json());
 app.use("/todos", todoRoutes);
 app.use("/auth", authRoutes);
+app.use("/users", userRoutes);
 
 app.listen(PORT, () => {
   console.log(`🚀 Server running at http://localhost:${PORT}`);
