@@ -6,6 +6,10 @@ import { OAuth2Client } from "google-auth-library";
 import dotenv from "dotenv";
 import { generateAccessToken, generateRefreshToken } from "../utils/token";
 
+import { sendEmail } from "../utils/mailer";
+import fs from "fs";
+import path from "path";
+
 dotenv.config();
 
 const JWT_SECRET = process.env.JWT_SECRET || "supersecret";
@@ -46,12 +50,24 @@ export async function registerUser(email: string, password: string) {
 
   const hashedPassword = await bcrypt.hash(password, 10);
 
-  return prisma.user.create({
+  const user = await prisma.user.create({
     data: {
       email,
       password: hashedPassword,
     },
   });
+
+  // kirim welcome email
+  const templatePath = path.join(__dirname, "../templates/welcomeEmail.html");
+  const templateHtml = fs.readFileSync(templatePath, "utf-8");
+
+  try {
+    await sendEmail(email, "Welcome to Todo App!", templateHtml);
+  } catch (error) {
+    console.error("Failed to send welcome email : ", error);
+  }
+
+  return user;
 }
 
 /**
