@@ -11,6 +11,7 @@ export interface User {
 }
 
 export async function findUserById(id: number): Promise<User | null> {
+  console.log("id : ", id);
   return prisma.user.findUnique({
     where: { id },
   });

@@ -28,6 +28,7 @@ export async function uploadProfilePictureController(
 
 export async function getUserController(req: Request, res: Response) {
   const userId = Number(req.params.userId);
+  console.log("user id controller : ", userId);
   const user = await findUserById(userId);
   if (!user) {
     return res.status(404).json({
