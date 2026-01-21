@@ -1,0 +1,32 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: postgres-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: myapp
+    ports:
+    - "5432:5432"
+    volumes:
+    - postgres_data:/var/lib/postgresql/data
+
+  api:
+    build: 
+      context: .
+      args:
+        DATABASE_URL: ${DATABASE_URL}
+    container_name: my-api
+    depends_on:
+      - postgres
+    env_file:
+      - .env
+    ports:
+      - "3000:3000"
+    command: sh -c "npx prisma migrate deploy && node dist/app.js"
+   
+
+volumes:
+  postgres_data:
