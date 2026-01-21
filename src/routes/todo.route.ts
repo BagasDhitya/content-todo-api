@@ -7,18 +7,29 @@ import {
   updateTodo,
   deleteTodo,
 } from "../controllers/todo.controller";
+import { asyncHandler } from "../utils/asyncHandler";
 
 const router = Router();
 const { verifyToken } = AuthMiddleware();
 
 // GUEST & VIP boleh GET
-router.get("/", verifyToken, requireRole(["GUEST", "VIP"]), getTodos);
+router.get(
+  "/",
+  verifyToken,
+  requireRole(["GUEST", "VIP"]),
+  asyncHandler(getTodos),
+);
 
 // HANYA VIP
-router.post("/", verifyToken, requireRole(["VIP"]), createTodo);
+router.post("/", verifyToken, requireRole(["VIP"]), asyncHandler(createTodo));
 
-router.put("/:id", verifyToken, requireRole(["VIP"]), updateTodo);
+router.put("/:id", verifyToken, requireRole(["VIP"]), asyncHandler(updateTodo));
 
-router.delete("/:id", verifyToken, requireRole(["VIP"]), deleteTodo);
+router.delete(
+  "/:id",
+  verifyToken,
+  requireRole(["VIP"]),
+  asyncHandler(deleteTodo),
+);
 
 export default router;

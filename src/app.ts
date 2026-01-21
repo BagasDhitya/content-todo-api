@@ -3,6 +3,7 @@ import cors from "cors";
 import todoRoutes from "./routes/todo.route";
 import authRoutes from "./routes/auth.route";
 import userRoutes from "./routes/user.route";
+import { errorMiddleware } from "./middlewares/error.middleware";
 
 const app = express();
 const PORT = 3000;
@@ -12,13 +13,15 @@ app.use(
     origin: ["http://localhost:5173", "http://localhost:4173"],
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
     credentials: true,
-  })
+  }),
 );
 
 app.use(express.json());
 app.use("/todos", todoRoutes);
 app.use("/auth", authRoutes);
 app.use("/users", userRoutes);
+
+app.use(errorMiddleware);
 
 app.listen(PORT, () => {
   console.log(`🚀 Server running at http://localhost:${PORT}`);

@@ -5,6 +5,7 @@ import {
   updateTodoCompleted,
   deleteTodoById,
 } from "../services/todo.service";
+import { AppError } from "../utils/AppError";
 
 export async function getTodos(req: Request, res: Response) {
   const todos = await findAllTodos();
@@ -13,6 +14,10 @@ export async function getTodos(req: Request, res: Response) {
 
 export async function createTodo(req: Request, res: Response) {
   const { title } = req.body;
+
+  if (!title) {
+    throw new AppError("Title is required", 400);
+  }
 
   const todo = await createTodoService(title);
   res.status(201).json(todo);
@@ -25,7 +30,7 @@ export async function updateTodo(req: Request, res: Response) {
   const todo = await updateTodoCompleted(Number(id), completed);
 
   if (!todo) {
-    return res.status(404).json({ message: "Todo not found" });
+    throw new AppError("Todo not found", 404);
   }
 
   res.json(todo);
@@ -34,6 +39,11 @@ export async function updateTodo(req: Request, res: Response) {
 export async function deleteTodo(req: Request, res: Response) {
   const { id } = req.params;
 
-  await deleteTodoById(Number(id));
+  const deleted: any = await deleteTodoById(Number(id));
+
+  if (!deleted) {
+    throw new AppError("Todo not found", 404);
+  }
+
   res.status(204).send();
 }
