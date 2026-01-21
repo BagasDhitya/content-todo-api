@@ -1,4 +1,5 @@
 import prisma from "../db";
+import { redis } from "../cache";
 
 export interface Todo {
   id: number;
@@ -7,12 +8,33 @@ export interface Todo {
   createdAt: Date;
 }
 
-export async function findAllTodos(): Promise<Todo[]> {
-  return prisma.todo.findMany({
-    orderBy: {
-      createdAt: "desc",
-    },
+const TODOS_CACHE_KEY = "todos:all";
+const TODOS_TTL = 60; // seconds
+
+export async function findAllTodos(): Promise<{
+  source: string;
+  data: any;
+}> {
+  // 1. cek cache
+  const cached = await redis.get(TODOS_CACHE_KEY);
+  if (cached) {
+    return {
+      source: "cached",
+      data: JSON.parse(cached),
+    };
+  }
+
+  // 2. query database
+  const todos = await prisma.todo.findMany({
+    orderBy: { createdAt: "desc" },
   });
+
+  // 3. simpan ke cache
+  await redis.set(TODOS_CACHE_KEY, JSON.stringify(todos), "EX", TODOS_TTL);
+  return {
+    source: "database",
+    data: todos,
+  };
 }
 
 export async function createTodo(title: string): Promise<Todo> {
@@ -25,7 +47,7 @@ export async function createTodo(title: string): Promise<Todo> {
 
 export async function updateTodoCompleted(
   id: number,
-  completed: boolean
+  completed: boolean,
 ): Promise<Todo | null> {
   return prisma.todo
     .update({
