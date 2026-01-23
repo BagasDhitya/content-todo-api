@@ -6,6 +6,7 @@ import {
   deleteTodoById,
 } from "../services/todo.service";
 import { AppError } from "../utils/AppError";
+import { deleteTodoQueue } from "../helpers/todoQueue";
 
 export async function getTodos(req: Request, res: Response) {
   const todos = await findAllTodos();
@@ -39,7 +40,11 @@ export async function updateTodo(req: Request, res: Response) {
 export async function deleteTodo(req: Request, res: Response) {
   const { id } = req.params;
 
-  const deleted: any = await deleteTodoById(Number(id));
+  // masukkan job ke queue, bukan langsung delete
+  const deleted = await deleteTodoQueue.add(Number(id), {
+    attempts: 3, // retry 3x kalau gagal
+    backoff: 5000, // jeda 5 detik sebelum retry
+  });
 
   if (!deleted) {
     throw new AppError("Todo not found", 404);

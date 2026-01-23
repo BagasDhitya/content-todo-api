@@ -1,0 +1,7 @@
+* * * * * command-to-run
+
+* pertama = menit
+* kedua = jam
+* ketiga = hari dalam sebulan
+* keempat = bulan
+* kelima = hari dalam seminggu

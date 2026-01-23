@@ -4,6 +4,7 @@ import todoRoutes from "./routes/todo.route";
 import authRoutes from "./routes/auth.route";
 import userRoutes from "./routes/user.route";
 import { errorMiddleware } from "./middlewares/error.middleware";
+import { getTodosCron, scheduleTodoPost } from "./helpers/todoCron";
 
 const app = express();
 const PORT = 3000;
@@ -20,6 +21,8 @@ app.use(express.json());
 app.use("/todos", todoRoutes);
 app.use("/auth", authRoutes);
 app.use("/users", userRoutes);
+
+getTodosCron()
 
 app.use(errorMiddleware);
 
