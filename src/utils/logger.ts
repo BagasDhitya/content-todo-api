@@ -1,16 +1,14 @@
 import winston from "winston";
 
+const isServerless = !!process.env.VERCEL;
+
 export const logger = winston.createLogger({
-  level: "error",
+  level: "info",
   format: winston.format.combine(
     winston.format.timestamp(),
-    winston.format.json(),
+    winston.format.json()
   ),
   transports: [
-    new winston.transports.Console(),
-    new winston.transports.File({
-      filename: "logs/error.log",
-      level: "error",
-    }),
+    new winston.transports.Console()
   ],
 });

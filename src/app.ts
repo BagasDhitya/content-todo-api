@@ -22,12 +22,8 @@ app.use("/todos", todoRoutes);
 app.use("/auth", authRoutes);
 app.use("/users", userRoutes);
 
-getTodosCron()
+getTodosCron();
 
 app.use(errorMiddleware);
-
-app.listen(PORT, () => {
-  console.log(`🚀 Server running at http://localhost:${PORT}`);
-});
 
 export default app;
