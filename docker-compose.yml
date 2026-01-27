@@ -13,6 +13,31 @@ services:
     volumes:
     - postgres_data:/var/lib/postgresql/data
 
+  sonar-db:
+    image: postgres:16-alpine
+    container_name: sonar-db
+    environment:
+      - POSTGRES_USER=sonar
+      - POSTGRES_PASSWORD=sonar
+      - POSTGRES_DB=sonarqube
+    volumes:
+      - sonar_db_data:/var/lib/postgresql/data
+
+  sonarqube:
+    image: sonarqube:10-community
+    container_name: sonarqube
+    depends_on:
+      - sonar-db
+    environment:
+      - SONAR_JDBC_URL=jdbc:postgresql://sonar-db:5432/sonarqube
+      - SONAR_JDBC_USERNAME=sonar
+      - SONAR_JDBC_PASSWORD=sonar
+    ports:
+      - "9000:9000"
+    volumes:
+      - sonar_data:/opt/sonarqube/data
+      - sonar_extensions:/opt/sonarqube/extensions
+
   api:
     build: 
       context: .
@@ -26,7 +51,21 @@ services:
     ports:
       - "3000:3000"
     command: sh -c "npx prisma migrate deploy && node dist/app.js"
-   
 
+  zap:
+    image: zaproxy/zap-stable
+    container_name: zap
+    depends_on:
+      - api
+    volumes:
+      - ./zap-reports:/zap/wrk
+    command: > 
+      zap-baseline.py
+      -t http://api:3000
+      -r zap-report.html
+   
 volumes:
   postgres_data:
+  sonar_db_data:
+  sonar_data:
+  sonar_extensions:
