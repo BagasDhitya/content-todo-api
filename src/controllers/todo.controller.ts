@@ -7,6 +7,7 @@ import {
 } from "../services/todo.service";
 import { AppError } from "../utils/AppError";
 import { deleteTodoQueue } from "../helpers/todoQueue";
+import { sanitizeBoolean, sanitizeId, sanitizeText } from "../helpers/sanitize";
 
 export async function getTodos(req: Request, res: Response) {
   const todos = await findAllTodos();
@@ -14,10 +15,17 @@ export async function getTodos(req: Request, res: Response) {
 }
 
 export async function createTodo(req: Request, res: Response) {
-  const { title } = req.body;
+  let { title } = req.body;
 
   if (!title) {
     throw new AppError("Title is required", 400);
+  }
+
+  // sanitize req.body {title}
+  title = sanitizeText(title);
+
+  if (title.length === 0) {
+    throw new AppError("Title cannot be empty", 400);
   }
 
   const todo = await createTodoService(title);
@@ -25,8 +33,9 @@ export async function createTodo(req: Request, res: Response) {
 }
 
 export async function updateTodo(req: Request, res: Response) {
-  const { id } = req.params;
-  const { completed } = req.body;
+  // sanitize req.params dan req.body sebelum update
+  const id = sanitizeId(req.params.id);
+  const completed = sanitizeBoolean(req.body.completed);
 
   const todo = await updateTodoCompleted(Number(id), completed);
 
