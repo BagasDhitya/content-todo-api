@@ -7,7 +7,7 @@ on:
     branches: [main]
 
 env:
-    DATABASE_URL: postgresql://postgres.xybhiplccwoamsdkruzh:ShowCase1234@aws-1-ap-southeast-1.pooler.supabase.com:5432/postgres
+  DATABASE_URL: postgresql://postgres.xybhiplccwoamsdkruzh:ShowCase1234@aws-1-ap-southeast-1.pooler.supabase.com:5432/postgres
 
 jobs:
   test:
@@ -25,7 +25,7 @@ jobs:
       - name: Use Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: ${{matrix.node-version}}
+          node-version: ${{ matrix.node-version }}
 
       - name: Install dependencies
         run: npm install
@@ -35,3 +35,23 @@ jobs:
 
       - name: Run tests
         run: npm test
+
+  notify-discord:
+    needs: test
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Send Discord Notification
+        uses: sarisia/actions-status-discord@v1
+        with:
+          webhook: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          status: ${{ needs.test.result }}
+          title: "🚀 Push to main"
+          description: |
+            **Branch:** ${{ github.ref_name }}
+            **Commit:** ${{ github.sha }}
+            **Author:** ${{ github.actor }}
+            **Message:** ${{ github.event.head_commit.message }}
+          color: ${{ needs.test.result == 'success' && '0x00FF00' || '0xFF0000' }}
+          username: "GitHub CI Bot"
